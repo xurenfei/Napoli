@@ -134,7 +134,25 @@ RestartSec=120
 WantedBy=multi-user.target
 `
 
+// 自动更新开关，当前刻意关闭。
+//
+// 关闭原因：原实现先向 GitHub API 取 tag，再从 ehang.io 下载对应 tar.gz，用 unpackit 解包到临时目录，
+// 随后把解出来的可执行文件覆盖到 /usr/bin 或 /usr/local/bin 下的安装位置并 chmod 0755。
+// 这条链路没有签名校验，也没有摘要比对，甚至不校验解出来的文件是不是本程序；版本号虽然取自 GitHub，
+// 二进制却来自 ehang.io —— 一个不在本项目控制下的域名。
+//
+// 上游项目已停止维护，域名与发布权一旦易主或被投毒，所有执行过 update 的部署都会被静默替换成伪造版本。
+// update 一般以 root 权限运行，等于把提权入口一并交出去。在接入「可信发布源 + 签名校验」之前不放通。
+//
+// 用常量而不是配置项或环境变量：这个值只能通过重新编译改变，避免部署侧被一条配置就重新打开。
+// 保留下载逻辑本身，等接入自有发布源与校验后再改这里的开关。
+const autoUpdateEnabled = false
+
 func UpdateNps() {
+	if !autoUpdateEnabled {
+		refuseUpdate("napolis")
+		return
+	}
 	destPath := downloadLatest("server")
 	//复制文件到对应目录
 	copyStaticFile(destPath, "nps")
@@ -142,11 +160,24 @@ func UpdateNps() {
 }
 
 func UpdateNpc() {
+	if !autoUpdateEnabled {
+		refuseUpdate("napolic")
+		return
+	}
 	destPath := downloadLatest("client")
 	//复制文件到对应目录
 	copyStaticFile(destPath, "npc")
 	fmt.Println("Update completed, please restart")
 }
+
+func refuseUpdate(bin string) {
+	log.Println("[update disabled] 不再从上游拉取 " + bin + " 更新。")
+	log.Println("  原因：原更新通道不校验发布者签名与摘要，且上游项目已停止维护，存在被伪造版本替换的风险。")
+	log.Println("  请从可信来源手动下载并替换二进制文件。")
+	os.Exit(1)
+}
+
+// 以下下载逻辑当前不可达（autoUpdateEnabled 为 false），保留待接入可信发布源后复用。
 
 type release struct {
 	TagName string `json:"tag_name"`
@@ -255,11 +286,11 @@ func InstallNps() string {
 	log.Println("The new configuration file is located in", path, "you can edit them")
 	if !common.IsWindows() {
 		log.Println(`You can start with:
-napolis start|stop|restart|uninstall|update or napolis-update update
+napolis start|stop|restart|uninstall
 anywhere!`)
 	} else {
 		log.Println(`You can copy executable files to any directory and start working with:
-napolis.exe start|stop|restart|uninstall|update or napolis-update.exe update
+napolis.exe start|stop|restart|uninstall
 now!`)
 	}
 	chMod(common.GetLogPath(), 0777)
