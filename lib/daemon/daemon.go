@@ -63,7 +63,9 @@ func readPID(path string) (int, error) {
 }
 
 func reload(f string, pidPath string) {
-	if f == "nps" && !common.IsWindows() && !status(f, pidPath) {
+	// 原写法把进程名写死成 "nps"，改名后这个前置检查会被静默跳过，
+	// 于是没在运行时也会去 kill 一个过期 pid。这里不再绑定具体名字。
+	if !common.IsWindows() && !status(f, pidPath) {
 		log.Println("reload fail")
 		return
 	}
