@@ -1,13 +1,14 @@
 package daemon
 
 import (
-	"io/ioutil"
+	"errors"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"napoli/lib/common"
 )
@@ -46,20 +47,32 @@ func InitDaemon(f string, runPath string, pidPath string) {
 	}
 }
 
+// readPID 读取 pid 文件并校验内容是合法进程号。
+// 原实现把文件内容直接拼进 /bin/bash -c，pid 文件一旦被写入非数字内容
+// 就等同于命令注入，这里只接受正整数。
+func readPID(path string) (int, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return 0, err
+	}
+	pid, err := strconv.Atoi(strings.TrimSpace(string(b)))
+	if err != nil || pid <= 0 {
+		return 0, errors.New("invalid pid file content")
+	}
+	return pid, nil
+}
+
 func reload(f string, pidPath string) {
 	if f == "nps" && !common.IsWindows() && !status(f, pidPath) {
 		log.Println("reload fail")
 		return
 	}
-	var c *exec.Cmd
-	var err error
-	b, err := ioutil.ReadFile(filepath.Join(pidPath, f+".pid"))
-	if err == nil {
-		c = exec.Command("/bin/bash", "-c", `kill -30 `+string(b))
-	} else {
+	pid, err := readPID(filepath.Join(pidPath, f+".pid"))
+	if err != nil {
 		log.Fatalln("reload error,pid file does not exist")
 	}
-	if c.Run() == nil {
+	// 直接调用 kill，不经 shell 解释，参数不会被拼接执行。
+	if err := exec.Command("kill", "-30", strconv.Itoa(pid)).Run(); err == nil {
 		log.Println("reload success")
 	} else {
 		log.Println("reload fail")
@@ -67,20 +80,29 @@ func reload(f string, pidPath string) {
 }
 
 func status(f string, pidPath string) bool {
-	var cmd *exec.Cmd
-	b, err := ioutil.ReadFile(filepath.Join(pidPath, f+".pid"))
-	if err == nil {
-		if !common.IsWindows() {
-			cmd = exec.Command("/bin/sh", "-c", "ps -ax | awk '{ print $1 }' | grep "+string(b))
-		} else {
-			cmd = exec.Command("tasklist")
-		}
-		out, _ := cmd.Output()
-		if strings.Index(string(out), string(b)) > -1 {
-			return true
-		}
+	pid, err := readPID(filepath.Join(pidPath, f+".pid"))
+	if err != nil {
+		return false
 	}
-	return false
+	if common.IsWindows() {
+		// tasklist 按 PID 精确筛选，避免原实现 grep 子串匹配带来的误判。
+		out, err := exec.Command("tasklist", "/FI", "PID eq "+strconv.Itoa(pid), "/NH").Output()
+		if err != nil {
+			return false
+		}
+		return strings.Contains(string(out), strconv.Itoa(pid))
+	}
+	// 信号 0 不投递信号，只做存在性检查，比 grep ps 输出更准确，
+	// 也不会把子串相同的无关进程误判为目标进程。
+	p, err := os.FindProcess(pid)
+	if err != nil {
+		return false
+	}
+	if err := p.Signal(syscall.Signal(0)); err != nil {
+		// EPERM 说明进程存在但当前用户无权操作，仍算运行中。
+		return errors.Is(err, syscall.EPERM)
+	}
+	return true
 }
 
 func start(osArgs []string, f string, pidPath, runPath string) {
@@ -93,7 +115,7 @@ func start(osArgs []string, f string, pidPath, runPath string) {
 	if cmd.Process.Pid > 0 {
 		log.Println("start ok , pid:", cmd.Process.Pid, "config path:", runPath)
 		d1 := []byte(strconv.Itoa(cmd.Process.Pid))
-		ioutil.WriteFile(filepath.Join(pidPath, f+".pid"), d1, 0600)
+		os.WriteFile(filepath.Join(pidPath, f+".pid"), d1, 0600)
 	} else {
 		log.Println("start error")
 	}
@@ -105,20 +127,17 @@ func stop(f string, p string, pidPath string) {
 		return
 	}
 	var c *exec.Cmd
-	var err error
 	if common.IsWindows() {
 		p := strings.Split(p, `\`)
 		c = exec.Command("taskkill", "/F", "/IM", p[len(p)-1])
 	} else {
-		b, err := ioutil.ReadFile(filepath.Join(pidPath, f+".pid"))
-		if err == nil {
-			c = exec.Command("/bin/bash", "-c", `kill -9 `+string(b))
-		} else {
+		pid, err := readPID(filepath.Join(pidPath, f+".pid"))
+		if err != nil {
 			log.Fatalln("stop error,pid file does not exist")
 		}
+		c = exec.Command("kill", "-9", strconv.Itoa(pid))
 	}
-	err = c.Run()
-	if err != nil {
+	if err := c.Run(); err != nil {
 		log.Println("stop error,", err)
 	} else {
 		log.Println("stop ok")

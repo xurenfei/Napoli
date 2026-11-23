@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"napoli/lib/common"
 	"napoli/lib/conn"
 	"napoli/lib/crypt"
@@ -19,8 +21,6 @@ import (
 	"napoli/lib/version"
 	"napoli/server/connection"
 	"napoli/server/tool"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 )
 
 type Client struct {
@@ -79,8 +79,9 @@ func (s *Bridge) StartTunnel() error {
 		listener, err := connection.GetBridgeListener(s.tunnelType)
 		if err != nil {
 			logs.Error(err)
-			os.Exit(0)
-			return err
+			// 桥接端口监听失败属于致命错误，退出码必须非零，
+			// 否则守护进程会把它当成正常结束，不做重启。
+			os.Exit(1)
 		}
 		conn.Accept(listener, func(c net.Conn) {
 			s.cliProcess(conn.NewConn(c))
@@ -89,7 +90,7 @@ func (s *Bridge) StartTunnel() error {
 	return nil
 }
 
-//get health information form client
+// get health information form client
 func (s *Bridge) GetHealthFromClient(id int, c *conn.Conn) {
 	for {
 		if info, status, err := c.GetHealthInfo(); err != nil {
@@ -154,7 +155,7 @@ func (s *Bridge) GetHealthFromClient(id int, c *conn.Conn) {
 	s.DelClient(id)
 }
 
-//验证失败，返回错误验证flag，并且关闭连接
+// 验证失败，返回错误验证flag，并且关闭连接
 func (s *Bridge) verifyError(c *conn.Conn) {
 	c.Write([]byte(common.VERIFY_EER))
 }
@@ -224,7 +225,7 @@ func (s *Bridge) DelClient(id int) {
 	}
 }
 
-//use different
+// use different
 func (s *Bridge) typeDeal(typeVal string, c *conn.Conn, id int, vs string) {
 	isPub := file.GetDb().IsPubClient(id)
 	switch typeVal {
@@ -303,7 +304,7 @@ func (s *Bridge) typeDeal(typeVal string, c *conn.Conn, id int, vs string) {
 	return
 }
 
-//register ip
+// register ip
 func (s *Bridge) register(c *conn.Conn) {
 	var hour int32
 	if err := binary.Read(c, binary.LittleEndian, &hour); err == nil {
@@ -387,7 +388,7 @@ func (s *Bridge) ping() {
 	}
 }
 
-//get config and add task from client config
+// get config and add task from client config
 func (s *Bridge) getConfig(c *conn.Conn, isPub bool, client *file.Client) {
 	var fail bool
 loop:

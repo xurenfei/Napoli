@@ -26,14 +26,15 @@ func NewKcpListenerAndProcess(addr string, f func(c net.Conn)) error {
 	}
 	for {
 		c, err := kcpListener.AcceptKCP()
-		SetUdpSession(c)
+		// 先判错再处理连接：AcceptKCP 失败时 c 为 nil，
+		// 原顺序会把 nil 交给 SetUdpSession。
 		if err != nil {
 			logs.Warn(err)
 			continue
 		}
+		SetUdpSession(c)
 		go f(c)
 	}
-	return nil
 }
 
 func Accept(l net.Listener, f func(c net.Conn)) {

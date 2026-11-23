@@ -10,10 +10,7 @@ import (
 	"log"
 	"math/big"
 	"net"
-	"os"
 	"time"
-
-	"github.com/astaxie/beego/logs"
 )
 
 var (
@@ -30,20 +27,27 @@ func InitTls() {
 	}
 }
 
+// minTLSVersion 是隧道内层 TLS 允许的最低协议版本。
+// TLS 1.0/1.1 已被主流浏览器与 RFC 8996 弃用，且 Go 1.22 起标准库默认最低即为 1.2。
+// 这里显式声明，避免依赖工具链默认值，同时在项目仍使用 Go 1.21 时也生效。
+const minTLSVersion = tls.VersionTLS12
+
 func NewTlsServerConn(conn net.Conn) net.Conn {
-	var err error
-	if err != nil {
-		logs.Error(err)
-		os.Exit(0)
-		return nil
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   minTLSVersion,
 	}
-	config := &tls.Config{Certificates: []tls.Certificate{cert}}
 	return tls.Server(conn, config)
 }
 
+// NewTlsClientConn 建立隧道内层 TLS 连接。
+// 服务端证书是每次启动现场生成的自签证书，客户端无法用系统根证书链验证，
+// 因此这里跳过证书校验，身份认证由上层 vkey 完成。若将来改为持久化证书，
+// 应在此处改用证书指纹固定（pinning）替代 InsecureSkipVerify。
 func NewTlsClientConn(conn net.Conn) net.Conn {
 	conf := &tls.Config{
 		InsecureSkipVerify: true,
+		MinVersion:         minTLSVersion,
 	}
 	return tls.Client(conn, conf)
 }
@@ -61,6 +65,9 @@ func generateKeyPair(CommonName string) (rawCert, rawKey []byte, err error) {
 	notAfter := notBefore.Add(validFor)
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return
+	}
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{

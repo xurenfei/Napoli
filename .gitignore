@@ -3,3 +3,7 @@ nps
 npc
 napoli
 .workbuddy
+dist/
+coverage.txt
+bin/
+.DS_Store

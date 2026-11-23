@@ -9,14 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/astaxie/beego/logs"
+	"github.com/xtaci/kcp-go"
 	"napoli/lib/common"
 	"napoli/lib/config"
 	"napoli/lib/conn"
 	"napoli/lib/crypt"
 	"napoli/lib/file"
 	"napoli/server/proxy"
-	"github.com/astaxie/beego/logs"
-	"github.com/xtaci/kcp-go"
 )
 
 var (
@@ -69,7 +69,8 @@ func startLocalFileServer(config *config.CommonConfig, t *file.Tunnel, vkey stri
 		return
 	}
 	srv := &http.Server{
-		Handler: http.StripPrefix(t.StripPre, http.FileServer(http.Dir(t.LocalPath))),
+		Handler:           http.StripPrefix(t.StripPre, http.FileServer(http.Dir(t.LocalPath))),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	logs.Info("start local file system, local path %s, strip prefix %s ,remote port %s ", t.LocalPath, t.StripPre, t.Ports)
 	fileServer = append(fileServer, srv)
@@ -106,7 +107,7 @@ func StartLocalServer(l *config.LocalServer, config *config.CommonConfig) error 
 		logs.Info("successful start-up of local tcp trans monitoring, port", l.Port)
 		return proxy.NewTunnelModeServer(proxy.HandleTrans, p2pNetBridge, task).Start()
 	case "p2p", "secret":
-		listener, err := net.ListenTCP("tcp", &net.TCPAddr{net.ParseIP("0.0.0.0"), l.Port, ""})
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.IPv4zero, Port: l.Port})
 		if err != nil {
 			logs.Error("local listener startup failed port %d, error %s", l.Port, err.Error())
 			return err

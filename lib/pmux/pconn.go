@@ -21,11 +21,13 @@ func newPortConn(conn net.Conn, rs []byte, readMore bool) *PortConn {
 }
 
 func (pConn *PortConn) Read(b []byte) (n int, err error) {
-	if len(b) < len(pConn.rs)-pConn.start {
-		defer func() {
-			pConn.start = pConn.start + len(b)
-		}()
-		return copy(b, pConn.rs), nil
+	// 缓冲区装不完剩余的识别字节时只回填一部分。
+	// 原实现从 rs 头部拷贝而不是从 start 处拷贝，短读会把已发出的前缀重复吐出，
+	// 上层据此解析握手内容就会错位。
+	if remaining := len(pConn.rs) - pConn.start; len(b) < remaining {
+		n = copy(b, pConn.rs[pConn.start:])
+		pConn.start += n
+		return n, nil
 	}
 	if pConn.start < len(pConn.rs) {
 		defer func() {

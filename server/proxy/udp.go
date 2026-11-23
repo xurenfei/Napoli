@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/astaxie/beego/logs"
 	"napoli/bridge"
 	"napoli/lib/common"
 	"napoli/lib/conn"
 	"napoli/lib/file"
-	"github.com/astaxie/beego/logs"
 )
 
 type UdpModeServer struct {
@@ -27,13 +27,13 @@ func NewUdpModeServer(bridge *bridge.Bridge, task *file.Tunnel) *UdpModeServer {
 	return s
 }
 
-//开始
+// 开始
 func (s *UdpModeServer) Start() error {
 	var err error
 	if s.task.ServerIp == "" {
 		s.task.ServerIp = "0.0.0.0"
 	}
-	s.listener, err = net.ListenUDP("udp", &net.UDPAddr{net.ParseIP(s.task.ServerIp), s.task.Port, ""})
+	s.listener, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(s.task.ServerIp), Port: s.task.Port})
 	if err != nil {
 		return err
 	}

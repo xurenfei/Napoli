@@ -12,14 +12,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/astaxie/beego/logs"
 	"napoli/bridge"
 	"napoli/lib/cache"
 	"napoli/lib/common"
 	"napoli/lib/conn"
 	"napoli/lib/file"
 	"napoli/server/connection"
-	"github.com/astaxie/beego/logs"
 )
 
 type httpServer struct {
@@ -166,8 +167,10 @@ reset:
 	connClient = conn.GetConn(target, lk.Crypt, lk.Compress, host.Client.Rate, true)
 
 	//read from inc-client
+	// wg.Add 必须在启动 goroutine 之前调用：放在 goroutine 内部时，
+	// 与 Wait 之间存在竞态，计数器可能在 Wait 返回后才被置位。
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		isReset = false
 		defer connClient.Close()
 		defer func() {
@@ -269,6 +272,10 @@ func (s *httpServer) NewServer(port int, scheme string) *http.Server {
 			r.URL.Scheme = scheme
 			s.handleTunneling(w, r)
 		}),
+		// 只限制请求头读取时间，不放 Read/WriteTimeout，
+		// 避免切断 websocket、大文件下载这类本该长时间保持的连接。
+		// 没有这一项时，慢速发送请求头的连接可以长期占用一个 goroutine。
+		ReadHeaderTimeout: 10 * time.Second,
 		// Disable HTTP/2.
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}

@@ -7,10 +7,10 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/astaxie/beego/logs"
 	"napoli/lib/common"
 	"napoli/lib/conn"
 	"napoli/lib/file"
-	"github.com/astaxie/beego/logs"
 )
 
 const (
@@ -51,7 +51,7 @@ type Sock5ModeServer struct {
 	listener net.Listener
 }
 
-//req
+// req
 func (s *Sock5ModeServer) handleRequest(c net.Conn) {
 	/*
 		The SOCKS request is formed as follows:
@@ -84,7 +84,7 @@ func (s *Sock5ModeServer) handleRequest(c net.Conn) {
 	}
 }
 
-//reply
+// reply
 func (s *Sock5ModeServer) sendReply(c net.Conn, rep uint8) {
 	reply := []byte{
 		5,
@@ -105,7 +105,7 @@ func (s *Sock5ModeServer) sendReply(c net.Conn, rep uint8) {
 	c.Write(reply)
 }
 
-//do conn
+// do conn
 func (s *Sock5ModeServer) doConnect(c net.Conn, command uint8) {
 	addrType := make([]byte, 1)
 	c.Read(addrType)
@@ -146,7 +146,7 @@ func (s *Sock5ModeServer) doConnect(c net.Conn, command uint8) {
 	return
 }
 
-//conn
+// conn
 func (s *Sock5ModeServer) handleConnect(c net.Conn) {
 	s.doConnect(c, connectMethod)
 }
@@ -200,7 +200,9 @@ func (s *Sock5ModeServer) handleUDP(c net.Conn) {
 	//读取端口
 	var port uint16
 	binary.Read(c, binary.BigEndian, &port)
-	logs.Warn(host, string(port))
+	// 原写法 string(port) 是把 uint16 转成单个 rune，日志里只会出现一个乱码字符，
+	// 不是端口号本身；直接传数值由日志器格式化。
+	logs.Warn(host, port)
 	replyAddr, err := net.ResolveUDPAddr("udp", s.task.ServerIp+":0")
 	if err != nil {
 		logs.Error("build local reply addr error", err)
@@ -280,7 +282,7 @@ func (s *Sock5ModeServer) handleUDP(c net.Conn) {
 	}
 }
 
-//new conn
+// new conn
 func (s *Sock5ModeServer) handleConn(c net.Conn) {
 	buf := make([]byte, 2)
 	if _, err := io.ReadFull(c, buf); err != nil {
@@ -317,7 +319,7 @@ func (s *Sock5ModeServer) handleConn(c net.Conn) {
 	s.handleRequest(c)
 }
 
-//socks5 auth
+// socks5 auth
 func (s *Sock5ModeServer) Auth(c net.Conn) error {
 	header := []byte{0, 0}
 	if _, err := io.ReadAtLeast(c, header, 2); err != nil {
@@ -367,7 +369,7 @@ func (s *Sock5ModeServer) Auth(c net.Conn) error {
 	}
 }
 
-//start
+// start
 func (s *Sock5ModeServer) Start() error {
 	return conn.NewTcpListenerAndProcess(s.task.ServerIp+":"+strconv.Itoa(s.task.Port), func(c net.Conn) {
 		if err := s.CheckFlowAndConnNum(s.task.Client); err != nil {
@@ -381,7 +383,7 @@ func (s *Sock5ModeServer) Start() error {
 	}, &s.listener)
 }
 
-//new
+// new
 func NewSock5ModeServer(bridge NetBridge, task *file.Tunnel) *Sock5ModeServer {
 	s := new(Sock5ModeServer)
 	s.bridge = bridge
@@ -389,7 +391,7 @@ func NewSock5ModeServer(bridge NetBridge, task *file.Tunnel) *Sock5ModeServer {
 	return s
 }
 
-//close
+// close
 func (s *Sock5ModeServer) Close() error {
 	return s.listener.Close()
 }

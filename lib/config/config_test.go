@@ -49,15 +49,22 @@ p=2
 }
 
 func TestDealCommon(t *testing.T) {
-	s := `server=127.0.0.1:8284
-tp=tcp
+	// 字段名需与 dealCommon 及 conf/npc.conf 保持一致：
+	// 配置键早已从 server/tp 改为 server_addr/conn_type，此处原先未同步，导致用例恒失败。
+	s := `server_addr=127.0.0.1:8284
+conn_type=tcp
 vkey=123`
-	f := new(CommonConfig)
-	f.Server = "127.0.0.1:8284"
-	f.Tp = "tcp"
-	f.VKey = "123"
-	if c := dealCommon(s); *c != *f {
-		t.Fail()
+	c := dealCommon(s)
+	// 逐字段比对：dealCommon 会预置 Client/Cnf 等指针字段，
+	// 整体比较 *c != *f 必然不等，原写法实际测不出任何东西。
+	if c.Server != "127.0.0.1:8284" {
+		t.Fatalf("Server = %q, want 127.0.0.1:8284", c.Server)
+	}
+	if c.Tp != "tcp" {
+		t.Fatalf("Tp = %q, want tcp", c.Tp)
+	}
+	if c.VKey != "123" {
+		t.Fatalf("VKey = %q, want 123", c.VKey)
 	}
 }
 
