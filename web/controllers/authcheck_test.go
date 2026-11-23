@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"ehang.io/nps/lib/crypt"
-	"ehang.io/nps/web/controllers"
-	"ehang.io/nps/web/routers"
 	"github.com/astaxie/beego"
+	"napoli/lib/crypt"
+	"napoli/web/controllers"
+	"napoli/web/routers"
 )
 
 // probeController 只用于验证 BaseController.Prepare 的放行与拦截。
@@ -68,6 +68,7 @@ func TestPrepareRejectsForgedSignature(t *testing.T) {
 	resp := postProbe(t, srv, url.Values{
 		"auth_key":  {forged},
 		"timestamp": {strconv.FormatInt(now, 10)},
+		"nonce":     {"forged-nonce-0001"},
 	})
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusFound {
@@ -123,22 +124,33 @@ func TestPrepareAcceptsHMAC(t *testing.T) {
 
 	now := time.Now().Unix()
 	good := strconv.FormatInt(now, 10)
-	resp := postProbe(t, srv, url.Values{
-		"auth_key":  {crypt.SignAuthKey(key, now)},
+	nonce := "accept-nonce-" + good
+	form := url.Values{
+		"auth_key":  {crypt.SignAuthKey(key, now, nonce)},
 		"timestamp": {good},
-	})
+		"nonce":     {nonce},
+	}
+	resp := postProbe(t, srv, form)
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("valid signature: got %d, want 200", resp.StatusCode)
 	}
 
-	// 同一套参数把签名换掉必须被拒
-	resp2 := postProbe(t, srv, url.Values{
-		"auth_key":  {crypt.SignAuthKey(key, now-1)},
-		"timestamp": {good},
-	})
+	// 同一 nonce 原样重放必须被拒
+	resp2 := postProbe(t, srv, form)
 	defer resp2.Body.Close()
 	if resp2.StatusCode != http.StatusFound {
-		t.Fatalf("mismatched signature: got %d, want 302", resp2.StatusCode)
+		t.Fatalf("replayed request: got %d, want 302", resp2.StatusCode)
+	}
+
+	// 同一套参数把签名换掉必须被拒
+	resp3 := postProbe(t, srv, url.Values{
+		"auth_key":  {crypt.SignAuthKey(key, now, "other-nonce-"+good)},
+		"timestamp": {good},
+		"nonce":     {nonce},
+	})
+	defer resp3.Body.Close()
+	if resp3.StatusCode != http.StatusFound {
+		t.Fatalf("mismatched signature: got %d, want 302", resp3.StatusCode)
 	}
 }

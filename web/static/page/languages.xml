@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <content>
 
-	<application>NPS</application>
+	<application>Napoli</application>
 
 	<default>en-US</default>
 
@@ -11,16 +11,16 @@
 	</languages>
 
 	<lang id="title-admin">
-		<zh-CN>NPS - 管理</zh-CN>
-		<en-US>NPS Admin</en-US>
+		<zh-CN>Napoli - 管理</zh-CN>
+		<en-US>Napoli Admin</en-US>
 	</lang>
 	<lang id="title-login">
-		<zh-CN>NPS - 登录</zh-CN>
-		<en-US>NPS login</en-US>
+		<zh-CN>Napoli - 登录</zh-CN>
+		<en-US>Napoli login</en-US>
 	</lang>
 	<lang id="title-register">
-		<zh-CN>NPS - 注册</zh-CN>
-		<en-US>NPS Register</en-US>
+		<zh-CN>Napoli - 注册</zh-CN>
+		<en-US>Napoli Register</en-US>
 	</lang>
 
 	<lang id="scheme-host">
@@ -643,8 +643,8 @@
 		<en-US>Only socks5 , web, HTTP forward proxy</en-US>
 	</lang>
 	<lang id="info-register">
-		<zh-CN>注册到 NPS</zh-CN>
-		<en-US>Register to NPS</en-US>
+		<zh-CN>注册到 Napoli</zh-CN>
+		<en-US>Register to Napoli</en-US>
 	</lang>
 	<lang id="info-suchashost">
 		<zh-CN>例如 a.proxy.com</zh-CN>

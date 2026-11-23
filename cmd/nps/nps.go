@@ -10,19 +10,19 @@ import (
 	"strings"
 	"sync"
 
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/lib/install"
-	"ehang.io/nps/lib/version"
-	"ehang.io/nps/server"
-	"ehang.io/nps/server/connection"
-	"ehang.io/nps/server/tool"
-	"ehang.io/nps/web/routers"
+	"napoli/lib/file"
+	"napoli/lib/install"
+	"napoli/lib/version"
+	"napoli/server"
+	"napoli/server/connection"
+	"napoli/server/tool"
+	"napoli/web/routers"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/crypt"
-	"ehang.io/nps/lib/daemon"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"napoli/lib/common"
+	"napoli/lib/crypt"
+	"napoli/lib/daemon"
 
 	"github.com/kardianos/service"
 )
@@ -60,7 +60,7 @@ func main() {
 	options := make(service.KeyValue)
 	svcConfig := &service.Config{
 		Name:        "Nps",
-		DisplayName: "nps内网穿透代理服务器",
+		DisplayName: "Napoli 内网穿透代理服务器",
 		Description: "一款轻量级、功能强大的内网穿透代理服务器。支持tcp、udp流量转发，支持内网http代理、内网socks5代理，同时支持snappy压缩、站点保护、加密传输、多路复用、header修改等。支持web图形化管理，集成多用户模式。",
 		Option:      options,
 	}

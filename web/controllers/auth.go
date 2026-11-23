@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"ehang.io/nps/lib/crypt"
 	"github.com/astaxie/beego"
+	"napoli/lib/crypt"
 )
 
 type AuthController struct {

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"ehang.io/nps/client"
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/daemon"
-	"ehang.io/nps/lib/version"
+	"napoli/client"
+	"napoli/lib/common"
+	"napoli/lib/daemon"
+	"napoli/lib/version"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"

@@ -1,4 +1,4 @@
-module ehang.io/nps
+module napoli
 
 go 1.15
 

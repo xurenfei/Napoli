@@ -1,5 +1,5 @@
 
-# NPS
+# Napoli
 ![](https://img.shields.io/github/stars/ehang-io/nps.svg)   ![](https://img.shields.io/github/forks/ehang-io/nps.svg)
 [![Gitter](https://badges.gitter.im/cnlh-nps/community.svg)](https://gitter.im/cnlh-nps/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 ![Release](https://github.com/ehang-io/nps/workflows/Release/badge.svg)
@@ -7,7 +7,7 @@
 
 [README](https://github.com/ehang-io/nps/blob/master/README.md)|[中文文档](https://github.com/ehang-io/nps/blob/master/README_zh.md)
 
-NPS is a lightweight, high-performance, powerful **intranet penetration** proxy server, with a powerful web management terminal.
+Napoli is a fork of NPS, a lightweight, high-performance, powerful **intranet penetration** proxy server, with a powerful web management terminal.
 
 
 ![image](https://github.com/ehang-io/nps/blob/master/image/web.png?raw=true)
@@ -40,7 +40,7 @@ After downloading the server compressed package, unzip it, and then enter the un
 
 - execute installation command
 
-For linux、darwin ```sudo ./nps install```
+For linux、darwin ```sudo ./napoli install```
 
 For windows, run cmd as administrator and enter the installation directory ```nps.exe install```
 
@@ -56,9 +56,9 @@ The default configuration file of nps use 80，443，8080，8024 ports
 
 - start up
 
-For linux、darwin ```sudo nps start```
+For linux、darwin ```sudo napoli start```
 
-For windows, run cmd as administrator and enter the program directory ```nps.exe start```
+For windows, run cmd as administrator and enter the program directory ```napoli.exe start```
 
 ```After installation, the windows configuration file is located at C:\Program Files\nps, linux or darwin is located at /etc/nps```
 

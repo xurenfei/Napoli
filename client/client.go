@@ -13,10 +13,10 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/xtaci/kcp-go"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/config"
-	"ehang.io/nps/lib/conn"
-	"ehang.io/nps/lib/crypt"
+	"napoli/lib/common"
+	"napoli/lib/config"
+	"napoli/lib/conn"
+	"napoli/lib/crypt"
 )
 
 type TRPClient struct {

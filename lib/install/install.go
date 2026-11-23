@@ -1,7 +1,7 @@
 package install
 
 import (
-	"ehang.io/nps/lib/common"
+	"napoli/lib/common"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -192,7 +192,7 @@ func downloadLatest(bin string) string {
 
 func copyStaticFile(srcPath, bin string) string {
 	path := common.GetInstallPath()
-	if bin == "nps" {
+	if bin == "nps" || bin == "napoli" {
 		//复制文件到对应目录
 		if err := CopyDir(filepath.Join(srcPath, "web", "views"), filepath.Join(path, "web", "views")); err != nil {
 			log.Fatalln(err)
@@ -249,17 +249,17 @@ func InstallNps() string {
 		}
 		chMod(filepath.Join(path, "conf"), 0766)
 	}
-	binPath := copyStaticFile(common.GetAppPath(), "nps")
+	binPath := copyStaticFile(common.GetAppPath(), "napoli")
 	log.Println("install ok!")
 	log.Println("Static files and configuration files in the current directory will be useless")
 	log.Println("The new configuration file is located in", path, "you can edit them")
 	if !common.IsWindows() {
 		log.Println(`You can start with:
-nps start|stop|restart|uninstall|update or nps-update update
+napoli start|stop|restart|uninstall|update or napoli-update update
 anywhere!`)
 	} else {
 		log.Println(`You can copy executable files to any directory and start working with:
-nps.exe start|stop|restart|uninstall|update or nps-update.exe update
+napoli.exe start|stop|restart|uninstall|update or napoli-update.exe update
 now!`)
 	}
 	chMod(common.GetLogPath(), 0777)

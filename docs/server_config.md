@@ -12,7 +12,7 @@ https_proxy_port | 域名代理https代理监听端口
 http_proxy_port | 域名代理http代理监听端口
 auth_key|web api 签名密钥，至少16位随机字符串，未配置或弱值时 api 认证关闭
 bridge_type|客户端与服务端连接方式kcp或tcp
-public_vkey|客户端以配置文件模式启动时的密钥，设置为空表示关闭客户端配置文件连接模式
+public_vkey|客户端以配置文件模式启动时的密钥，必须为随机值，设置为空表示关闭客户端配置文件连接模式
 ip_limit|是否限制ip访问，true或false或忽略
 flow_store_interval|服务端流量数据持久化间隔，单位分钟，忽略表示不持久化
 log_level|日志输出级别

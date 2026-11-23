@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/file"
+	"napoli/lib/common"
+	"napoli/lib/file"
 )
 
 type CommonConfig struct {

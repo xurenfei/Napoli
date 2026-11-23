@@ -7,36 +7,47 @@
 ## webAPI验证说明
 
 - 采用 auth_key 的验证方式
-- 在提交的每个请求后面附带两个参数，`auth_key` 和 `timestamp`
+- 每个请求附带三个参数，`auth_key`、`timestamp`、`nonce`
 
-签名为对时间戳的 HMAC SHA256，密钥为配置文件中的 auth_key，输出十六进制小写
-
-```
-auth_key = hex(hmac_sha256(配置文件中的auth_key, 当前时间戳))
-```
+签名材料为 `timestamp:nonce`，算法 HMAC SHA256，密钥为配置文件中的 auth_key，输出十六进制小写
 
 ```
-timestamp为当前时间戳，单位秒
+auth_key = hex(hmac_sha256(配置文件中的auth_key, 当前时间戳 + ":" + nonce))
 ```
 
-**注意：** 时间戳与服务端偏差不能超过 20 秒，每次提交请求必须重新生成。
+```
+timestamp 为当前时间戳，单位秒
+nonce 为每次请求新生成的随机串，长度 8 到 64，只允许可见 ASCII
+```
+
+**注意：** 时间戳与服务端偏差不能超过 20 秒。nonce 在 60 秒内只能用一次，重复提交会被拒绝，所以每次请求都要重新生成，不能复用。
 
 Python 示例
 
 ```python
 import hashlib
 import hmac
+import secrets
 import time
 
 import requests
 
 AUTH_KEY = b"替换为配置文件中的 auth_key"
 timestamp = int(time.time())
-signature = hmac.new(AUTH_KEY, str(timestamp).encode(), hashlib.sha256).hexdigest()
+nonce = secrets.token_hex(16)
+signature = hmac.new(
+    AUTH_KEY, f"{timestamp}:{nonce}".encode(), hashlib.sha256
+).hexdigest()
 
 r = requests.post(
     "http://127.0.0.1:8080/client/list",
-    data={"auth_key": signature, "timestamp": timestamp, "offset": 0, "limit": 10},
+    data={
+        "auth_key": signature,
+        "timestamp": timestamp,
+        "nonce": nonce,
+        "offset": 0,
+        "limit": 10,
+    },
 )
 print(r.status_code, r.text)
 ```

@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"ehang.io/nps/web/controllers"
+	"napoli/web/controllers"
 	"github.com/astaxie/beego"
 )
 

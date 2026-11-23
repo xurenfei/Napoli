@@ -7,9 +7,9 @@ import (
 	"net"
 	"strconv"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/conn"
-	"ehang.io/nps/lib/file"
+	"napoli/lib/common"
+	"napoli/lib/conn"
+	"napoli/lib/file"
 	"github.com/astaxie/beego/logs"
 )
 

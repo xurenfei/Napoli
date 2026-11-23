@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/server"
-	"ehang.io/nps/server/tool"
+	"napoli/lib/file"
+	"napoli/server"
+	"napoli/server/tool"
 
 	"github.com/astaxie/beego"
 )

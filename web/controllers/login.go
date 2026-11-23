@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/server"
 	"github.com/astaxie/beego"
+	"napoli/lib/common"
+	"napoli/lib/file"
+	"napoli/server"
 )
 
 type LoginController struct {

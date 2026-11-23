@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/config"
-	"ehang.io/nps/lib/conn"
-	"ehang.io/nps/lib/crypt"
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/server/proxy"
+	"napoli/lib/common"
+	"napoli/lib/config"
+	"napoli/lib/conn"
+	"napoli/lib/crypt"
+	"napoli/lib/file"
+	"napoli/server/proxy"
 	"github.com/astaxie/beego/logs"
 	"github.com/xtaci/kcp-go"
 )

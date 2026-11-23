@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/crypt"
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/server"
+	"napoli/lib/common"
+	"napoli/lib/crypt"
+	"napoli/lib/file"
+	"napoli/server"
 	"github.com/astaxie/beego"
 )
 
@@ -18,6 +18,9 @@ type BaseController struct {
 	controllerName string
 	actionName     string
 }
+
+// authNonceCache 记录用过的 nonce，保留时间要大于签名有效窗口。
+var authNonceCache = crypt.NewNonceCache(60 * time.Second)
 
 //初始化参数
 func (s *BaseController) Prepare() {
@@ -30,10 +33,18 @@ func (s *BaseController) Prepare() {
 	// param 2 is timestamp (It's limited to 20 seconds.)
 	signature := s.getEscapeString("auth_key")
 	timestamp := s.GetIntNoErr("timestamp")
+	nonce := s.GetString("nonce")
 	configKey := beego.AppConfig.String("auth_key")
+	now := time.Now().Unix()
 	// auth_key 未配置或为弱口令时 VerifyAuthKey 直接失败，api 认证通道关闭，
 	// 不允许回退成 md5(""+timestamp) 这种任何人都能算出的签名。
-	apiAuthed := signature != "" && crypt.VerifyAuthKey(configKey, signature, int64(timestamp), time.Now().Unix()) == nil
+	// nonce 在窗口内只能用一次，避免截获的请求被原样重放。
+	apiAuthed := false
+	if signature != "" && nonce != "" &&
+		crypt.VerifyAuthKey(configKey, signature, int64(timestamp), nonce, now) == nil &&
+		authNonceCache.Use(nonce, now) {
+		apiAuthed = true
+	}
 	if !apiAuthed {
 		if s.GetSession("auth") != true {
 			s.Redirect(beego.AppConfig.String("web_base_url")+"/login/index", 302)

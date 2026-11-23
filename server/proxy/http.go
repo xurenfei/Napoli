@@ -13,12 +13,12 @@ import (
 	"strings"
 	"sync"
 
-	"ehang.io/nps/bridge"
-	"ehang.io/nps/lib/cache"
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/conn"
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/server/connection"
+	"napoli/bridge"
+	"napoli/lib/cache"
+	"napoli/lib/common"
+	"napoli/lib/conn"
+	"napoli/lib/file"
+	"napoli/server/connection"
 	"github.com/astaxie/beego/logs"
 )
 

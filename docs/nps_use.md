@@ -40,8 +40,8 @@
  nps-update.exe update
 ```
 
-更新完成后，执行执行 `sudo nps start` 或者 `nps.exe start` 重新运行即可完成升级
+更新完成后，执行执行 `sudo napoli start` 或者 `napoli.exe start` 重新运行即可完成升级
 
 如果无法更新成功，可以直接自行下载releases压缩包然后覆盖原有的nps二进制文件和web目录
 
-注意：`nps install` 之后的 nps 不在原位置，请使用 `whereis nps` 查找具体目录覆盖 nps 二进制文件
+注意：`napoli install` 之后的 nps 不在原位置，请使用 `whereis napoli` 查找具体目录覆盖 napoli 二进制文件

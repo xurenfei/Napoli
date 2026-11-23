@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"ehang.io/nps/lib/rate"
+	"napoli/lib/rate"
 	"github.com/pkg/errors"
 )
 

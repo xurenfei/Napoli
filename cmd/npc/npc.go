@@ -1,12 +1,12 @@
 package main
 
 import (
-	"ehang.io/nps/client"
-	"ehang.io/nps/lib/common"
-	"ehang.io/nps/lib/config"
-	"ehang.io/nps/lib/file"
-	"ehang.io/nps/lib/install"
-	"ehang.io/nps/lib/version"
+	"napoli/client"
+	"napoli/lib/common"
+	"napoli/lib/config"
+	"napoli/lib/file"
+	"napoli/lib/install"
+	"napoli/lib/version"
 	"flag"
 	"fmt"
 	"github.com/astaxie/beego/logs"
