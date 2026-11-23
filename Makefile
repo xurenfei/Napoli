@@ -2,9 +2,11 @@ SOURCE_FILES?=./...
 TEST_PATTERN?=.
 TEST_OPTIONS?=
 
-DIST_DIR ?= dist
-BIN_SERVER ?= napoli
-BIN_CLIENT ?= npc
+# 产物放在仓库上一级，与 src 平级，不混进源码树。
+# 用 abspath 而不是写死绝对路径，换机器或换目录时不用再改。
+DIST_DIR ?= $(abspath $(CURDIR)/../dist)
+BIN_SERVER ?= napolis
+BIN_CLIENT ?= napolic
 
 export PATH := ./bin:$(PATH)
 
@@ -28,7 +30,7 @@ BUILD_CGO ?= 0
 # -s -w strips the symbol table and DWARF data.
 BUILD_LDFLAGS ?= -trimpath -ldflags "-s -w"
 
-# Build both server and client into dist/
+# Build both server and client into $(DIST_DIR)
 # 刻意不写成基于文件时间戳的规则：源文件分散在多个包，
 # 靠 $(DIST_DIR)/x: y.go 声明依赖很容易漏掉，导致改了代码不重编。
 build:

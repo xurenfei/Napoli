@@ -1,7 +1,6 @@
 package install
 
 import (
-	"napoli/lib/common"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"napoli/lib/common"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -192,7 +192,7 @@ func downloadLatest(bin string) string {
 
 func copyStaticFile(srcPath, bin string) string {
 	path := common.GetInstallPath()
-	if bin == "nps" || bin == "napoli" {
+	if bin == "nps" || bin == "napoli" || bin == "napolis" {
 		//复制文件到对应目录
 		if err := CopyDir(filepath.Join(srcPath, "web", "views"), filepath.Join(path, "web", "views")); err != nil {
 			log.Fatalln(err)
@@ -234,7 +234,7 @@ func InstallNpc() {
 			log.Fatal(err)
 		}
 	}
-	copyStaticFile(common.GetAppPath(), "npc")
+	copyStaticFile(common.GetAppPath(), "napolic")
 }
 
 func InstallNps() string {
@@ -249,17 +249,17 @@ func InstallNps() string {
 		}
 		chMod(filepath.Join(path, "conf"), 0766)
 	}
-	binPath := copyStaticFile(common.GetAppPath(), "napoli")
+	binPath := copyStaticFile(common.GetAppPath(), "napolis")
 	log.Println("install ok!")
 	log.Println("Static files and configuration files in the current directory will be useless")
 	log.Println("The new configuration file is located in", path, "you can edit them")
 	if !common.IsWindows() {
 		log.Println(`You can start with:
-napoli start|stop|restart|uninstall|update or napoli-update update
+napolis start|stop|restart|uninstall|update or napolis-update update
 anywhere!`)
 	} else {
 		log.Println(`You can copy executable files to any directory and start working with:
-napoli.exe start|stop|restart|uninstall|update or napoli-update.exe update
+napolis.exe start|stop|restart|uninstall|update or napolis-update.exe update
 now!`)
 	}
 	chMod(common.GetLogPath(), 0777)
@@ -309,7 +309,7 @@ func CopyDir(srcPath string, destPath string) error {
 	return err
 }
 
-//生成目录并拷贝文件
+// 生成目录并拷贝文件
 func copyFile(src, dest string) (w int64, err error) {
 	srcFile, err := os.Open(src)
 	if err != nil {
@@ -344,7 +344,7 @@ func copyFile(src, dest string) (w int64, err error) {
 	return io.Copy(dstFile, srcFile)
 }
 
-//检测文件夹路径时候存在
+// 检测文件夹路径时候存在
 func pathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
