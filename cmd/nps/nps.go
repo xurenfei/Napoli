@@ -189,7 +189,26 @@ func (p *nps) run() error {
 	return nil
 }
 
+// checkWebSecurity 在启动时检查 web 端凭据配置，避免默认值或空密钥被误当成安全配置。
+func checkWebSecurity() {
+	authKey := beego.AppConfig.String("auth_key")
+	if authKey == "" {
+		logs.Info("web api authentication is disabled, auth_key is not configured")
+	} else if err := crypt.ValidateAuthKey(authKey); err != nil {
+		logs.Warning("web api authentication is disabled, auth_key rejected: %s", err.Error())
+	}
+	if key := beego.AppConfig.String("auth_crypt_key"); key != "" {
+		if err := crypt.ValidateAuthCryptKey(key); err != nil {
+			logs.Warning("auth_crypt_key rejected, /auth/getauthkey will refuse to serve: %s", err.Error())
+		}
+	}
+	if pwd := beego.AppConfig.String("web_password"); pwd == "" || pwd == "123" {
+		logs.Warning("web_password is empty or the well-known default 123, change it before exposing web_port")
+	}
+}
+
 func run() {
+	checkWebSecurity()
 	routers.Init()
 	task := &file.Tunnel{
 		Mode: "webServer",

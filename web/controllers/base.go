@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"html"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -27,15 +26,18 @@ func (s *BaseController) Prepare() {
 	s.controllerName = strings.ToLower(controllerName[0 : len(controllerName)-10])
 	s.actionName = strings.ToLower(actionName)
 	// web api verify
-	// param 1 is md5(authKey+Current timestamp)
+	// param 1 is hex(HMAC-SHA256(authKey, Current timestamp))
 	// param 2 is timestamp (It's limited to 20 seconds.)
-	md5Key := s.getEscapeString("auth_key")
+	signature := s.getEscapeString("auth_key")
 	timestamp := s.GetIntNoErr("timestamp")
 	configKey := beego.AppConfig.String("auth_key")
-	timeNowUnix := time.Now().Unix()
-	if !(md5Key != "" && (math.Abs(float64(timeNowUnix-int64(timestamp))) <= 20) && (crypt.Md5(configKey+strconv.Itoa(timestamp)) == md5Key)) {
+	// auth_key 未配置或为弱口令时 VerifyAuthKey 直接失败，api 认证通道关闭，
+	// 不允许回退成 md5(""+timestamp) 这种任何人都能算出的签名。
+	apiAuthed := signature != "" && crypt.VerifyAuthKey(configKey, signature, int64(timestamp), time.Now().Unix()) == nil
+	if !apiAuthed {
 		if s.GetSession("auth") != true {
 			s.Redirect(beego.AppConfig.String("web_base_url")+"/login/index", 302)
+			return
 		}
 	} else {
 		s.SetSession("isAdmin", true)
